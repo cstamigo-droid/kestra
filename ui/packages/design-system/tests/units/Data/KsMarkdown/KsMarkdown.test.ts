@@ -283,6 +283,33 @@ describe("KsMarkdown", () => {
         expect(img.attributes("alt")).toBe("oops")
     })
 
+    test("keeps the src of a base64 data:image markdown image", () => {
+        const dataUri = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjwvc3ZnPg=="
+        const wrapper = mount(KsMarkdown, {
+            props: {content: `![report](${dataUri})`},
+            global: globalConfig,
+        })
+        expect(wrapper.find("img.ks-markdown__image").attributes("src")).toBe(dataUri)
+    })
+
+    test("drops the src of a data:text/html markdown image", () => {
+        const wrapper = mount(KsMarkdown, {
+            props: {content: "![oops](data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==)"},
+            global: globalConfig,
+        })
+        const img = wrapper.find("img.ks-markdown__image")
+        expect(img.attributes("src")).toBeUndefined()
+        expect(img.attributes("alt")).toBe("oops")
+    })
+
+    test("drops the src of an unencoded data:image markdown image", () => {
+        const wrapper = mount(KsMarkdown, {
+            props: {content: "![oops](data:image/svg+xml,<svg>evil</svg>)"},
+            global: globalConfig,
+        })
+        expect(wrapper.find("img.ks-markdown__image").attributes("src")).toBeUndefined()
+    })
+
     test("renders thematic break", () => {
         const wrapper = mount(KsMarkdown, {
             props: {content: "---"},
